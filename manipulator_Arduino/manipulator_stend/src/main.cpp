@@ -58,15 +58,15 @@ int vel1 = 0;
 int vel2 = 0;
 int vel3 = 0;
 
-void findVs(int x, int y) {  //x, y -- координаты джостика
+void findVs(int x, int y) {  //x, y -- координаты 
   int v1 = 0;
   int v2 = 0;
   int v3 = 0;
-  int* Vplus = procesVs(x, y);  //скорости из реального положения джостика
+  int* Vplus = procesVs(x, y);  //скорости из реального положения 
   v1 += Vplus[0];
   v2 += Vplus[1];
   v3 += Vplus[2];
-  int* Vminus = procesVs(-x, -y);  //скорости из противоположной точки, относительно реального положения джостика
+  int* Vminus = procesVs(-x, -y);  //скорости из противоположной точки, относительно реального положения 
   v1 -= Vminus[0];
   v2 -= Vminus[1];   
   v3 -= Vminus[2];
@@ -103,7 +103,7 @@ int* procesVs(int x, int y) {  //рассчёт НЕ конечных скоро
 
   double alpha = 0;                         //потом задаётся
   double beta = 0;                          //120* - alpha
-  int Vs = (dist(x, y, 0, 0) / 255) * 255;  //функция задания скорости порпорционально отклонению джостика
+  int Vs = (dist(x, y, 0, 0) / 255) * 255;  //функция задания скорости порпорционально отклонению 
   if (Vs > 255) {
     Vs = 255;
   }
