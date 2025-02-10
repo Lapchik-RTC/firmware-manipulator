@@ -53,5 +53,11 @@ while True:
             # Печать параметров тега
             print_args = (tag.name, tag.id, (180 * tag.rotation) / math.pi)
             res = int(map_value(tag.cx, 0, 320, 0, 255))
-            print(res)
+            res = int(res/2)
+            res = res*2
+            zahvat = int(map_value(blob.cx(), 0, 320, 0, 255))
+            zahvat = int(zahvat/2)
+            zahvat = ((zahvat*2) + 1)
+            print(zahvat)
             uart.writechar(res)  # Отправляем координату по UART
+            uart.writechar(zahvat)  # Отправляем координату по UART

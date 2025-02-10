@@ -1,14 +1,17 @@
 #include <Arduino.h>
+// #include "Servo.h"
 
-#define INA1 17
-#define INB1 12
-#define INA2 15
-#define INB2 16
-#define INA3 13
-#define INB3 14
-#define PWM1 2
+// Servo servo;
+
+#define INA1 16
+#define INB1 9
+#define INA2 11
+#define INB2 10
+#define INA3 5
+#define INB3 12
+#define PWM1 4
 #define PWM2 7
-#define PWM3 4 
+#define PWM3 6
 
 
 void setup() {
@@ -18,6 +21,10 @@ void setup() {
   pinMode(INA2, 1);
   pinMode(INB2, 1);
   pinMode(PWM2, 1);
+
+  Serial3.begin(115200);
+  Serial.begin(115200);
+//   servo.attach(8);
 }
 
 
@@ -46,52 +53,13 @@ void motor(int motor, int vel) {
   digitalWrite(in1, !(vel >= 0));
   digitalWrite(in2, (vel > 0));
 
-  analogWrite(pwmPin, min(abs(vel), 255));
+  vel = abs(vel);
+  analogWrite(pwmPin, min(vel, 255));
 }   
 
 
 double dist(double x1, double y1, double x2, double y2) {
   return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-}
-
-int vel1 = 0;
-int vel2 = 0;
-int vel3 = 0;
-
-void findVs(int x, int y) {  //x, y -- координаты 
-  int v1 = 0;
-  int v2 = 0;
-  int v3 = 0;
-  int* Vplus = procesVs(x, y);  //скорости из реального положения 
-  v1 += Vplus[0];
-  v2 += Vplus[1];
-  v3 += Vplus[2];
-  int* Vminus = procesVs(-x, -y);  //скорости из противоположной точки, относительно реального положения 
-  v1 -= Vminus[0];
-  v2 -= Vminus[1];   
-  v3 -= Vminus[2];
-  
-  //Serial.println(atan2(y, x));
-  vel1 = v1;
-  vel2 = v2;
-  vel3 = v3;
-  Serial.print(vel1);
-  Serial.print("\t");
-  Serial.print(-vel2);
-  Serial.print("\t");
-  Serial.print(-vel3);
-  Serial.println("\t");
-  motor(2, vel1);
-  motor(3, -vel2);
-  motor(1, vel3);
-  // motor(2, 200);
-  // motor(3, -200);
-  // motor(1, 200);
-  
-  delay(1);
-  // motor(1, 255);
-  // motor(3, 255);
-  // motor(2, 0);
 }
 
 int arr[] = { 0, 0, 0 };  //относится к функции ниже. А сама функция возвращает лишь ссылку на него
@@ -145,6 +113,46 @@ int* procesVs(int x, int y) {  //рассчёт НЕ конечных скоро
   return arr;
 }
 
+int vel1 = 0;
+int vel2 = 0;
+int vel3 = 0;
+
+void findVs(int x, int y) {  //x, y -- координаты 
+  int v1 = 0;
+  int v2 = 0;
+  int v3 = 0;
+  int* Vplus = procesVs(x, y);  //скорости из реального положения 
+  v1 += Vplus[0];
+  v2 += Vplus[1];
+  v3 += Vplus[2];
+  int* Vminus = procesVs(-x, -y);  //скорости из противоположной точки, относительно реального положения 
+  v1 -= Vminus[0];
+  v2 -= Vminus[1];   
+  v3 -= Vminus[2];
+  
+  //Serial.println(atan2(y, x));
+  vel1 = v1;
+  vel2 = v2;
+  vel3 = v3;
+  Serial.print(vel1);
+  Serial.print("\t");
+  Serial.print(-vel2);
+  Serial.print("\t");
+  Serial.print(-vel3);
+  Serial.println("\t");
+  motor(2, vel1);
+  motor(3, -vel2);
+  motor(1, vel3);
+  // motor(2, 200);
+  // motor(3, -200);
+  // motor(1, 200);
+  
+  delay(1);
+  // motor(1, 255);
+  // motor(3, 255);
+  // motor(2, 0);
+}
+
 
 void manipulator(byte x1, byte y1) {
   // Serial.print(x1);
@@ -165,4 +173,52 @@ void manipulator(byte x1, byte y1) {
     motor(3, 0);
   }
   // Serial.println(vel1);
+}
+
+
+int v_vpered = 40;
+int v_angle = 70;
+float kp = 2;
+float kd = 4;
+static int volatile errOld = 0;
+
+void azimut(int zahvat_x, int res_x) {
+    
+    int e = res_x - zahvat_x;
+    int u = int(e*kp + (e - errOld)* kd);
+    errOld = e;
+    motor(1, v_vpered);
+    motor(2, v_angle + u);
+    motor(3, v_angle - u);
+}
+
+void loop() {
+    int zahvat = 0;
+    int res = 0;
+    int i1 = 0;
+    int i2 = 0;
+    if (Serial3.available()) {
+        i1 = Serial3.read();
+        // Serial.println(tg);
+    }
+    if (Serial3.available()) {
+        i2 = Serial3.read();
+    }
+    if (i1 != 0 && i2 != 0) { 
+        if (i1%2 == 0) {
+            res = i1;
+            zahvat = i2;
+        }
+        else {
+            res = i2;
+            zahvat = i1;
+        }
+    }
+    if (res == 0 || zahvat != 0) { 
+        Serial.print(res);
+        Serial.print("\t");
+        Serial.println(zahvat);
+    }
+    
+    
 }
