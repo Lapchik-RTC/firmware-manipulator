@@ -3,14 +3,14 @@
 
 // Servo servo;
 
-#define INA1 16
-#define INB1 9
-#define INA2 11
-#define INB2 10
+#define INA1 11
+#define INB1 10
+#define INA2 16
+#define INB2 9
 #define INA3 5
 #define INB3 12
-#define PWM1 4
-#define PWM2 7
+#define PWM1 7
+#define PWM2 4
 #define PWM3 6
 
 
@@ -136,18 +136,18 @@ void findVs(int x, int y) {  //x, y -- координаты
   vel3 = v3;
   Serial.print(vel1);
   Serial.print("\t");
-  Serial.print(-vel2);
+  Serial.print(vel2);
   Serial.print("\t");
-  Serial.print(-vel3);
+  Serial.print(vel3);
   Serial.println("\t");
-  motor(2, vel1);
-  motor(3, -vel2);
-  motor(1, vel3);
-  // motor(2, 200);
-  // motor(3, -200);
-  // motor(1, 200);
+    motor(1, vel1);
+    motor(2, vel2);
+    motor(3, vel3);
+  // motor(2, 20);
+  // motor(3, -20);
+  // motor(1, -20);
   
-  delay(1);
+  // delay(1);
   // motor(1, 255);
   // motor(3, 255);
   // motor(2, 0);
@@ -202,7 +202,6 @@ struct Data
 { 
 public:
   int16_t tag_x;    
-  int16_t tag_x_old;    
   int16_t tag_y;
   int16_t zahvat_x;
   int16_t zahvat_y;
@@ -212,7 +211,6 @@ public:
 };
 Data data = {
   .tag_x      = 0,
-  .tag_x_old  = 1000,
   .tag_y      = 0,
   .zahvat_x   = 0,
   .zahvat_y   = 0,
@@ -285,16 +283,19 @@ void testSerRead()
   Serial.println(Serial3.read());
 }
 
+bool flag = true;
+uint16_t tag_x_old = 0;
+
 void printData(const Data& d) {
   Serial.print("  tag_x: "); Serial.print(d.tag_x);
-  // Serial.print("  tag_x_old: "); Serial.print(d.tag_x_old);
+  Serial.print("  tag_x_old: "); Serial.print(tag_x_old);
   Serial.print("  tag_y: "); Serial.print(d.tag_y);
   Serial.print("  zahvat_x: "); Serial.print(d.zahvat_x);
   Serial.print("  zahvat_y: "); Serial.print(d.zahvat_y);
   Serial.print("  pole_x: "); Serial.print(d.pole_x);
   Serial.print("  pole_y: "); Serial.print(d.pole_y);
-  Serial.print("  CRC_Error: "); Serial.println(d.CRC_Error ? "true " : "false ");
-  // Serial.print("  u: "); Serial.println(u);
+  Serial.print("  CRC_Error: "); Serial.print(d.CRC_Error ? "true " : "false ");
+  Serial.print("  u: "); Serial.println(u);
 }
 
 void stop() {
@@ -303,20 +304,24 @@ void stop() {
   motor(3, 0);
 }
 
+
 void loop() {
     Data d = readInt();
     printData(d);
-    if (true) {
-      d.tag_x_old = d.tag_x;
+    if (d.tag_x != 0 && flag) {
+      tag_x_old = d.tag_x;
+      flag = false;
     }
     if (!d.CRC_Error) {
-      if (d.zahvat_x < d.tag_x_old)
+      if (d.zahvat_x < tag_x_old)
       {
         d = readInt();  
-        if (d.tag_x != 0) {
-          d.tag_x_old = d.tag_x;
+        if (d.tag_x != 0 && flag) {
+          tag_x_old = d.tag_x;  
+          flag = false;
         }
-        azimut(d.zahvat_x, d.zahvat_y, d.tag_x, d.tag_y);
+        // azimut(d.zahvat_x, d.zahvat_y, d.tag_x, d.tag_y);
+        manipulator(0, 255);
         printData(d);
       }
       else {
