@@ -287,14 +287,14 @@ void testSerRead()
 
 void printData(const Data& d) {
   Serial.print("  tag_x: "); Serial.print(d.tag_x);
-  Serial.print("  tag_x_old: "); Serial.print(d.tag_x_old);
+  // Serial.print("  tag_x_old: "); Serial.print(d.tag_x_old);
   Serial.print("  tag_y: "); Serial.print(d.tag_y);
   Serial.print("  zahvat_x: "); Serial.print(d.zahvat_x);
   Serial.print("  zahvat_y: "); Serial.print(d.zahvat_y);
   Serial.print("  pole_x: "); Serial.print(d.pole_x);
   Serial.print("  pole_y: "); Serial.print(d.pole_y);
-  Serial.print("  CRC_Error: "); Serial.print(d.CRC_Error ? "true " : "false ");
-  Serial.print("  u: "); Serial.println(u);
+  Serial.print("  CRC_Error: "); Serial.println(d.CRC_Error ? "true " : "false ");
+  // Serial.print("  u: "); Serial.println(u);
 }
 
 void stop() {
@@ -325,6 +325,6 @@ void loop() {
       
     }
     // printData(d);
-    delay(500);
+    // delay(500);
     // testSerRead();
 }
