@@ -52,7 +52,7 @@ while True:
 
         img.draw_cross(tag.cx, tag.cy, color=(0, 255, 0))  # Используем без скобок
 
-    for blob in img.find_blobs([(10, 90, 36, 97, -14, 127)], area_threshold=200, pixels_threshold=300, merge=True, margin=30):
+    for blob in img.find_blobs([(10, 97, 33, 115, -10, 115)], area_threshold=300, pixels_threshold=300, merge=True, margin=75):
         img.draw_rectangle(blob.x(), blob.y(), blob.w(), blob.h(), (0, 0, 255))
         zahvat = blob.cx()
         value_y_zahvat = blob.cy()
@@ -65,8 +65,8 @@ while True:
     for blob1 in img.find_blobs([(10, 95, -126, -30, -1, 127)], area_threshold=100, pixels_threshold=30, merge=True, margin=40):
         img.draw_rectangle(blob1.x(), blob1.y(), blob1.w(), blob1.h(), (255, 255, 0))
 
-        pole = blob.cx()
-        value_y_pole = blob.cy()
+        pole = blob1.cx()
+        value_y_pole = blob1.cy()
         value_lo_pole = pole & 0xFF
         value_hi_pole = (pole >> 8) & 0xFF
         res_array[7] = value_lo_pole;

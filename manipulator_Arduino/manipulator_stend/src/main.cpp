@@ -1,7 +1,7 @@
 #include <Arduino.h>
-// #include "Servo.h"
+#include "Servo.h"
 
-// Servo servo;
+Servo servo;
 
 #define INA1 11
 #define INB1 10
@@ -24,7 +24,8 @@ void setup() {
 
   Serial3.begin(115200);
   Serial.begin(115200);
-//   servo.attach(8);
+  servo.attach(8);
+  servo.write(105);
 }
 
 
@@ -134,12 +135,12 @@ void findVs(int x, int y) {  //x, y -- координаты
   vel1 = v1;
   vel2 = v2;
   vel3 = v3;
-  Serial.print(vel1);
-  Serial.print("\t");
-  Serial.print(vel2);
-  Serial.print("\t");
-  Serial.print(vel3);
-  Serial.println("\t");
+  // Serial.print(vel1);
+  // Serial.print("\t");
+  // Serial.print(vel2);
+  // Serial.print("\t");
+  // Serial.print(vel3);
+  // Serial.println("\t");
     motor(1, vel1);
     motor(2, vel2);
     motor(3, vel3);
@@ -176,10 +177,12 @@ void manipulator(byte x1, byte y1) {
 }
 
 
-int v_vpered = 50;
+int v_vpered = 100;
+int v_vpered_levo = 120;
+int err = 26;
 int v_angle = 70;
-float kp = 0.3;
-float kd = 4;
+float kp = 3;
+float kd = 3;
 static int volatile errOld = 0;
 static int u = 0;
 
@@ -187,15 +190,71 @@ void azimut(int zahvat_x, int zahvat_y, int tag_x, int tag_y) {
     
     int e = tag_x - zahvat_x;
     u = int(e*kp + (e - errOld)* kd);
-    u = constrain(u, 0, 30);
+    u = constrain(u, 0, 100);
     errOld = e;
     // int v_vpered = v_angle - u;
-    motor(1, v_vpered + u);
-    motor(2, v_vpered - u - 15);
-    motor(3, v_vpered - u - 25);
-    // motor(1, -40);
-    // motor(2, -40);
-    // motor(3, -40);
+    Serial.print(v_vpered - err);
+    Serial.print("\t");
+    Serial.print(v_vpered_levo + u);
+    Serial.print("\t");
+    Serial.print(v_vpered  - u);
+    Serial.println("\t");
+    // motor(1, v_vpered - err);
+    // motor(2, v_vpered + u);
+    // motor(3, v_vpered - u);
+    motor(1, v_vpered - err);
+    motor(2, v_vpered_levo + u);
+    motor(3, v_vpered - u);
+}
+
+
+float kp_x = 1.8;
+float kd_x = 2;
+static int volatile errOld_x = 0;
+static int u_x = 0;
+
+void shag_x(int16_t x_zahvat, int16_t x_aim) {
+  int e = x_aim - x_zahvat;
+  u_x = int(e*kp_x + (e - errOld_x)* kd_x);
+  u_x = constrain(u_x, 0, 100);
+  errOld_x = e;
+  Serial.print(0);
+  Serial.print("\t");
+  Serial.print(v_vpered_levo + u_x);
+  Serial.print("\t");
+  Serial.print(v_vpered - u_x);
+  Serial.println("\t");
+  // motor(1, v_vpered - err);
+  // motor(2, v_vpered + u);
+  // motor(3, v_vpered - u);
+  motor(1, 30);
+  motor(2, v_vpered_levo + u_x);
+  motor(3, v_vpered - u_x);
+  delay(200);
+  motor(1, 0);
+  motor(2, 0);
+  motor(3, 0);
+  delay(300);
+}
+
+float kp_y = 2;
+float kd_y = 4;
+static int volatile errOld_y = 0;
+static int u_y = 0;
+
+void shag_y(int16_t y_zahvat, int16_t y_aim) {
+  int e = y_zahvat - y_aim;
+  u_y = int(e*kp_y + (e - errOld_y)* kd_y);
+  u_y = constrain(u_y, -255, 255);
+  errOld_y = e;
+  motor(1, v_vpered - 5);
+  motor(2, v_vpered_levo);
+  motor(3, v_vpered - 5);
+  delay(250);
+  motor(1, 0);
+  motor(2, 0);
+  motor(3, 0);
+  delay(300);
 }
 
 struct Data
@@ -284,18 +343,23 @@ void testSerRead()
 }
 
 bool flag = true;
-uint16_t tag_x_old = 0;
+int16_t tag_x_old = 0;
+int16_t tag_y = 0;
+int16_t pole_x = 0;
+int16_t pole_y = 0;
 
 void printData(const Data& d) {
   Serial.print("  tag_x: "); Serial.print(d.tag_x);
-  Serial.print("  tag_x_old: "); Serial.print(tag_x_old);
+  Serial.print("  tag_x_const: "); Serial.print(tag_x_old);
   Serial.print("  tag_y: "); Serial.print(d.tag_y);
   Serial.print("  zahvat_x: "); Serial.print(d.zahvat_x);
   Serial.print("  zahvat_y: "); Serial.print(d.zahvat_y);
   Serial.print("  pole_x: "); Serial.print(d.pole_x);
   Serial.print("  pole_y: "); Serial.print(d.pole_y);
   Serial.print("  CRC_Error: "); Serial.print(d.CRC_Error ? "true " : "false ");
-  Serial.print("  u: "); Serial.println(u);
+  Serial.print("  teg_y_const: "); Serial.print(tag_y); 
+  Serial.print("  pole_x_const: "); Serial.print(pole_x); 
+  Serial.print("  u_x: "); Serial.println(u_y);
 }
 
 void stop() {
@@ -304,30 +368,75 @@ void stop() {
   motor(3, 0);
 }
 
+bool baze_values(const Data& d) {
+  if (d.tag_x != 0 && flag) {
+    tag_x_old = d.tag_x;
+    if (d.tag_y != 0 && flag) {
+      tag_y = d.tag_y;
+      if (d.pole_x != 0 && flag) {
+        pole_x = d.pole_x;
+        if (d.pole_y != 0 && flag) {
+          pole_y = d.pole_y;
+          flag = false;
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 
 void loop() {
+  // while(true) {
+  //         motor(1, 0);
+  //         motor(2, 0);
+  //         motor(3, 0);
+  //         delay(500);
+  //         // motor(1, 120);
+  //         // motor(2, 125);
+  //         // motor(3, 75);
+  //         // delay(500);
+  //         motor(1, -100);
+  //         motor(2, -125);
+  //         motor(3, -85);
+  //         delay(500);
+  //       }
     Data d = readInt();
     printData(d);
-    if (d.tag_x != 0 && flag) {
-      tag_x_old = d.tag_x;
-      flag = false;
+    while(flag) {
+      baze_values(d);
+      d = readInt(); 
+      Serial.println("vechno");
     }
-    if (!d.CRC_Error) {
-      if (d.zahvat_x < tag_x_old)
-      {
-        d = readInt();  
-        if (d.tag_x != 0 && flag) {
-          tag_x_old = d.tag_x;  
-          flag = false;
+    Serial.println("start");
+    if (!d.CRC_Error && !flag) {
+      if (d.zahvat_x < (tag_x_old - 30) && d.zahvat_x != 0) {
+        shag_x(d.zahvat_x, (d.tag_x - 20));
+        Serial.println("X");
+        
+        if (d.zahvat_y > (d.tag_y - 80) && d.zahvat_y != 0) { 
+          shag_y(d.zahvat_y, (d.tag_y - 25));
+          Serial.println("Y_1");
+          if(d.zahvat_y < (d.tag_y + 30) && d.zahvat_y != 0) {
+            servo.write(178);
+            Serial.println("servo OPEN");
+            delay(1000);
+          }
         }
         // azimut(d.zahvat_x, d.zahvat_y, d.tag_x, d.tag_y);
-        manipulator(0, 255);
-        printData(d);
+        // manipulator(0, 255);
+        // printData(d);
+      }
+      else if (d.zahvat_y < (d.tag_y - 25) && d.zahvat_y != 0) {
+        servo.write(105);
+        Serial.println("servo CLOSE");
+        stop();
+        Serial.println("stop");
       }
       else {
-        stop();
+        shag_y(d.zahvat_y, (d.tag_y - 25));
+        Serial.println("Y_2");
       }
-      
     }
     // printData(d);
     // delay(500);
