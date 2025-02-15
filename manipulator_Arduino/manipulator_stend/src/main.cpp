@@ -523,7 +523,7 @@ void loop() {
           else {
             shag_x(d.zahvat_x, (pole_x_const));
           }
-      }
+      } 
       d = readInt();
       printData(d);
     }
