@@ -28,7 +28,7 @@ sensor.set_pixformat(sensor.RGB565)
 sensor.set_framesize(sensor.QVGA)
 sensor.skip_frames(time=2000)
 sensor.set_auto_gain(False)  # Отключаем автоматическое усиление
-sensor.set_auto_whitebal(False)  # Отключаем автоматическую балансировку белого
+sensor.set_auto_whitebal(False)  # Отключаем аbgвтоматическую балансировку белого
 clock = time.clock()
 
 while True:
@@ -52,7 +52,7 @@ while True:
 
         img.draw_cross(tag.cx, tag.cy, color=(0, 255, 0))  # Используем без скобок
 
-    for blob in img.find_blobs([(10, 97, 14, 115, -3, 115)], area_threshold=300, pixels_threshold=300, merge=True, margin=75):
+    for blob in img.find_blobs([(10, 97, 7, 127, -20, 114)], area_threshold=300, pixels_threshold=75, merge=True, margin=85):
         img.draw_rectangle(blob.x(), blob.y(), blob.w(), blob.h(), (0, 0, 255))
         zahvat = blob.cx()
         value_y_zahvat = blob.cy()
@@ -62,7 +62,7 @@ while True:
         res_array[5] = value_hi_zahvat;
         res_array[6] = value_y_zahvat;
 
-    for blob1 in img.find_blobs([(10, 97, -128, -22, 2, 127)], area_threshold=100, pixels_threshold=30, merge=True, margin=40):
+    for blob1 in img.find_blobs([(10, 97, -128, -23, -125, 26)], area_threshold=100, pixels_threshold=30, merge=True, margin=40):
         img.draw_rectangle(blob1.x(), blob1.y(), blob1.w(), blob1.h(), (255, 255, 0))
 
         pole = blob1.cx()
