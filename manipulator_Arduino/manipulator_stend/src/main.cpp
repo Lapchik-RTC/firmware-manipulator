@@ -1171,13 +1171,13 @@ void loop() {
           motor(3, 0);
           delay(500);
           stop();
-          servo.write(120);
+          servo.write(110);
 
           while(true);
           } 
       // d = readInt();
       // printData(d);
-      }
+      }    
     else {
       stop();
     }
