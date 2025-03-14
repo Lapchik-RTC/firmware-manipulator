@@ -827,7 +827,7 @@ void shag_x(int16_t x_zahvat, int16_t x_aim) {
   // motor(1, 55);
   // motor(2, v_vpered_levo + u_x);
   // motor(3, v_vpered - u_x);
-  motor(1, 20);
+  motor(1, 25);
   motor(2, +u_x);
   motor(3, -u_x);
   delay(130);
@@ -837,7 +837,7 @@ void shag_x(int16_t x_zahvat, int16_t x_aim) {
   delay(270);
   }
   else {
-  motor(1, 20);
+  motor(1, 25);
   motor(2, +u_x);
   motor(3, -u_x);
   delay(130);
@@ -864,12 +864,12 @@ void shag_y(int16_t y_zahvat, int16_t y_aim) {
   int v2;
   int v3;
   if (u_y > 0) {
-    v1 = v_vpered_y + 35;
+    v1 = v_vpered_y + 30;
     v2 = v_vpered_y + 15 +u_y;
     v3 = v_vpered_y + u_y;
   }
   else {
-    v1 = -v_vpered_y - 35;
+    v1 = -v_vpered_y - 30;
     v2 = -v_vpered_y - 15 + u_y;
     v3 = -v_vpered_y + u_y;
   }
