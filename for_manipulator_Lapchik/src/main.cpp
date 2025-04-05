@@ -3,12 +3,12 @@
 
 Servo servo;
 
-#define INA1 22
-#define INB1 13
-#define INA2 15
-#define INB2 16
-#define INA3 12
-#define INB3 17
+#define INA1 13
+#define INB1 22
+#define INA2 16
+#define INB2 15
+#define INA3 17
+#define INB3 12
 #define PWM1 4//5
 #define PWM2 5
 #define PWM3 2
@@ -226,10 +226,10 @@ bool readPacket() {
             }
             
             // Распаковка данных
-            gamePad.A          = packet[1] & 0x80;
-            gamePad.B          = packet[1] & 0x40;
-            gamePad.X          = packet[1] & 0x20;
-            gamePad.Y          = packet[1] & 0x10;
+            gamePad.A          = packet[1] & 0x40;
+            gamePad.B          = packet[1] & 0x80;
+            gamePad.X          = packet[1] & 0x10;
+            gamePad.Y          = packet[1] & 0x20;
             gamePad.DPad_Up    = packet[1] & 0x08;
             gamePad.DPad_Down  = packet[1] & 0x04;
             gamePad.DPad_Left  = packet[1] & 0x02;
@@ -311,7 +311,7 @@ void setup() {
   Serial1.begin(19200);
   Serial.begin(19200);
   servo.attach(46);
-  servo.write(130);
+  servo.write(90);
   delay(1000);
 
   memset(&gamePad, 0, sizeof(gamePad));
@@ -327,39 +327,39 @@ uint64_t t1 = 0;
 bool flag = 0;
 
 void loop() {
-  printPacket();
-  // readPacket();
+  // printPacket();
+  readPacket();
   // manipulator(32000, 32000);
   // motor(1, 200);
   // motor(2, -200);
   // motor(3, -200);
 
-  // if (!nado_rabotat()) {
-  //   motor(1, 0);
-  //   motor(2, 0);
-  //   motor(3, 0);
-  //   delay(2);
-  // }
-  // else {
-  //   if(gamePad.DPad_Right) {
-  //     servo.write(110);
-  //   }
-  //   if(gamePad.DPad_Left) {
-  //     servo.write(70);
-  //   }
-  //   if(gamePad.DPad_Up) {
-  //     motor(1, 200);
-  //     motor(2, 250);
-  //     motor(3, 250);
-  //   }
-  //   if(gamePad.DPad_Down) {
-  //     motor(1, -250);
-  //     motor(2, -200);
-  //     motor(3, -200);
-  //   }
-  //   if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
-  //     manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
-  //   }
-  // }
-  delay(50);
+  if (!nado_rabotat()) {
+    motor(1, 0);
+    motor(2, 0);
+    motor(3, 0);
+    delay(2);
+  }
+  else {
+    if(gamePad.DPad_Right) {
+      servo.write(110);
+    }
+    if(gamePad.DPad_Left) {
+      servo.write(70);
+    }
+    if(gamePad.DPad_Down  ) {
+      motor(1, 200);
+      motor(2, 250);
+      motor(3, 250);
+    }
+    if(gamePad.DPad_Up) {
+      motor(1, -250);
+      motor(2, -200);
+      motor(3, -200);
+    }
+    if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
+      manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
+    }
+  }
+  // delay(500);
 }
