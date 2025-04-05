@@ -3,7 +3,7 @@
 
 Servo servo;
 
-#define INA1 14
+#define INA1 22
 #define INB1 13
 #define INA2 15
 #define INB2 16
@@ -307,9 +307,9 @@ void setup() {
   pinMode(PWM3, 1);
   // pinMode(17, INPUT_PULLUP);
 
-  Serial3.begin(115200);
+  Serial3.begin(19200);
   Serial1.begin(19200);
-  Serial.begin(115200);
+  Serial.begin(19200);
   servo.attach(46);
   servo.write(130);
   delay(1000);
@@ -327,41 +327,39 @@ uint64_t t1 = 0;
 bool flag = 0;
 
 void loop() {
-  printPacket();
+  // printPacket();
+  readPacket();
   // manipulator(32000, 32000);
   // motor(1, 200);
-  digitalWrite(INA1, 0);
-  digitalWrite(INB1, 1);
-  analogWrite(PWM1, 200);
-  motor(2, -200);
-  motor(3, -200);
+  // motor(2, -200);
+  // motor(3, -200);
 
-  // if (!nado_rabotat()) {
-  //   motor(1, 0);
-  //   motor(2, 0);
-  //   motor(3, 0);
-  //   delay(2);
-  // }
-  // else {
-  //   if(gamePad.DPad_Right) {
-  //     servo.write(110);
-  //   }
-  //   if(gamePad.DPad_Left) {
-  //     servo.write(70);
-  //   }
-  //   if(gamePad.DPad_Up) {
-  //     motor(1, 200);
-  //     motor(2, 250);
-  //     motor(3, 250);
-  //   }
-  //   if(gamePad.DPad_Down) {
-  //     motor(1, -250);
-  //     motor(2, -200);
-  //     motor(3, -200);
-  //   }
-  //   if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
-  //     manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
-  //   }
-  // }
-  delay(5);
+  if (!nado_rabotat()) {
+    motor(1, 0);
+    motor(2, 0);
+    motor(3, 0);
+    delay(2);
+  }
+  else {
+    if(gamePad.DPad_Right) {
+      servo.write(110);
+    }
+    if(gamePad.DPad_Left) {
+      servo.write(70);
+    }
+    if(gamePad.DPad_Up) {
+      motor(1, 200);
+      motor(2, 250);
+      motor(3, 250);
+    }
+    if(gamePad.DPad_Down) {
+      motor(1, -250);
+      motor(2, -200);
+      motor(3, -200);
+    }
+    if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
+      manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
+    }
+  }
+  // delay(5);
 }
