@@ -218,28 +218,28 @@ bool readPacket() {
       // Полный пакет
       if (index >= 15) {
           index = 0;
-          packet[0] = 0x0A;
+          // packet[0] = 0x0A;
           // Проверка CRC (байты 1-11)
-          // uint16_t receivedCrc = (packet[13] << 8) || packet[14];
-          uint16_t receivedCrc = packet[13];
+          // uint16_t receivedCrc = (packet[12] << 8) | packet[13];
+          uint16_t receivedCrc = packet[14];
           uint16_t calculatedCrc = crc16_ccitt(&packet[1], 12);  // 12 байт данных в пакете
           
-          // if (receivedCrc != calculatedCrc) {
-          //   Serial.println(receivedCrc); 
-          //   Serial.println(calculatedCrc);
-          //   gamePad.CRC_Error = true;
-          //   return false;
-          // }
-          
-          if (receivedCrc != packet[2]%7) {
+          if (receivedCrc != 0xFF || packet[13] != 0) {
             Serial.println(receivedCrc); 
-            Serial.println(packet[2]%7);
+            Serial.println(packet[13]);
             gamePad.CRC_Error = true;
             return false;
           }
           
-          Serial.println(receivedCrc); 
-          Serial.println(calculatedCrc);
+          // if (receivedCrc != 0) {
+          //   Serial.println(receivedCrc); 
+          //   Serial.println();
+          //   gamePad.CRC_Error = true;
+          //   return false;
+          // }
+          
+          // Serial.println(receivedCrc); 
+          // Serial.println(calculatedCrc);
           // Распаковка данных
           gamePad.A          = packet[1] & 0x40;
           gamePad.B          = packet[1] & 0x80;
@@ -352,10 +352,6 @@ bool flag = 0;
 int pos = 90;
 
 void loop() {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
   // Serial.println("Loop");
   // if (Serial1.available() > 0) {
   //   Serial.println("Serial1");
@@ -365,13 +361,8 @@ void loop() {
   printPacket();
   // printTrigger();
   
-<<<<<<< HEAD
-=======
   // printPacket();
-  readPacket();
->>>>>>> parent of 886571a (fan)
-=======
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
+  // readPacket();
   // manipulator(32000, 32000);
   // motor(1, 200);
   // motor(2, -200);
@@ -385,16 +376,18 @@ void loop() {
   }
   else {
     if(gamePad.DPad_Right) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
       if (pos < 110) {
         pos += 8;
         servo.write(pos);
         delay(100);
       }
-<<<<<<< HEAD
+    }
+    if(gamePad.DPad_Left) {
+      if (pos > 25) {
+        pos -= 8;
+        servo.write(pos);
+        delay(100);
+      }
     }
     if(gamePad.DPad_Left) {
       if (pos > 25) {
@@ -404,37 +397,11 @@ void loop() {
       }
     }
     if(gamePad.DPad_Down) {
-=======
-      servo.write(110);
-=======
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
-    }
-    if(gamePad.DPad_Left) {
-      if (pos > 25) {
-        pos -= 8;
-        servo.write(pos);
-        delay(100);
-      }
-    }
-<<<<<<< HEAD
-    if(gamePad.DPad_Up) {
->>>>>>> parent of 886571a (fan)
-=======
-    if(gamePad.DPad_Down) {
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
       motor(1, 200);
       motor(2, 250);
       motor(3, 250);
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
     if(gamePad.DPad_Up) {
-=======
-    if(gamePad.DPad_Down) {
->>>>>>> parent of 886571a (fan)
-=======
-    if(gamePad.DPad_Up) {
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
       motor(1, -250);
       motor(2, -200);
       motor(3, -200);
@@ -443,13 +410,8 @@ void loop() {
       manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
     }
   }
-<<<<<<< HEAD
-<<<<<<< HEAD
   // delay(500);
-=======
   // delay(5);
->>>>>>> parent of 886571a (fan)
-=======
+
   // delay(500);
->>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
 }
