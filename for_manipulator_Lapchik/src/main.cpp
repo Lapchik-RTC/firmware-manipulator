@@ -332,7 +332,7 @@ void setup() {
 
 uint64_t t1 = 0;
 bool flag = 0;
-
+//нужная версия кода
 void loop() {
   // printPacket();
   printTrigger();
