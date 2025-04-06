@@ -353,6 +353,9 @@ int pos = 90;
 
 void loop() {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
   // Serial.println("Loop");
   // if (Serial1.available() > 0) {
   //   Serial.println("Serial1");
@@ -362,10 +365,13 @@ void loop() {
   printPacket();
   // printTrigger();
   
+<<<<<<< HEAD
 =======
   // printPacket();
   readPacket();
 >>>>>>> parent of 886571a (fan)
+=======
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
   // manipulator(32000, 32000);
   // motor(1, 200);
   // motor(2, -200);
@@ -380,11 +386,15 @@ void loop() {
   else {
     if(gamePad.DPad_Right) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
       if (pos < 110) {
         pos += 8;
         servo.write(pos);
         delay(100);
       }
+<<<<<<< HEAD
     }
     if(gamePad.DPad_Left) {
       if (pos > 25) {
@@ -396,21 +406,35 @@ void loop() {
     if(gamePad.DPad_Down) {
 =======
       servo.write(110);
+=======
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
     }
     if(gamePad.DPad_Left) {
-      servo.write(70);
+      if (pos > 25) {
+        pos -= 8;
+        servo.write(pos);
+        delay(100);
+      }
     }
+<<<<<<< HEAD
     if(gamePad.DPad_Up) {
 >>>>>>> parent of 886571a (fan)
+=======
+    if(gamePad.DPad_Down) {
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
       motor(1, 200);
       motor(2, 250);
       motor(3, 250);
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
     if(gamePad.DPad_Up) {
 =======
     if(gamePad.DPad_Down) {
 >>>>>>> parent of 886571a (fan)
+=======
+    if(gamePad.DPad_Up) {
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
       motor(1, -250);
       motor(2, -200);
       motor(3, -200);
@@ -420,8 +444,12 @@ void loop() {
     }
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
   // delay(500);
 =======
   // delay(5);
 >>>>>>> parent of 886571a (fan)
+=======
+  // delay(500);
+>>>>>>> c2c0a4a075e80b790b17cec0cb280752f07c06f4
 }
