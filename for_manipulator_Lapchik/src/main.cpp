@@ -218,15 +218,22 @@ bool readPacket() {
       // Полный пакет
       if (index >= 15) {
           index = 0;
-          
+          packet[0] = 0x0A;
           // Проверка CRC (байты 1-11)
-          // uint16_t receivedCrc = (packet[13] << 8) | packet[14];
-          uint16_t receivedCrc = packet[14];
+          // uint16_t receivedCrc = (packet[13] << 8) || packet[14];
+          uint16_t receivedCrc = packet[13];
           uint16_t calculatedCrc = crc16_ccitt(&packet[1], 12);  // 12 байт данных в пакете
           
-          if (receivedCrc != calculatedCrc) {
+          // if (receivedCrc != calculatedCrc) {
+          //   Serial.println(receivedCrc); 
+          //   Serial.println(calculatedCrc);
+          //   gamePad.CRC_Error = true;
+          //   return false;
+          // }
+          
+          if (receivedCrc != packet[2]%7) {
             Serial.println(receivedCrc); 
-            Serial.println(calculatedCrc);
+            Serial.println(packet[2]%7);
             gamePad.CRC_Error = true;
             return false;
           }
@@ -234,10 +241,10 @@ bool readPacket() {
           Serial.println(receivedCrc); 
           Serial.println(calculatedCrc);
           // Распаковка данных
-          gamePad.A          = packet[1] & 0x80;
-          gamePad.B          = packet[1] & 0x40;
-          gamePad.X          = packet[1] & 0x20;
-          gamePad.Y          = packet[1] & 0x10;
+          gamePad.A          = packet[1] & 0x40;
+          gamePad.B          = packet[1] & 0x80;
+          gamePad.X          = packet[1] & 0x10;
+          gamePad.Y          = packet[1] & 0x20;
           gamePad.DPad_Up    = packet[1] & 0x08;
           gamePad.DPad_Down  = packet[1] & 0x04;
           gamePad.DPad_Left  = packet[1] & 0x02;
@@ -270,7 +277,7 @@ bool readPacket() {
 
 void printTrigger() {
   if (readPacket()) {
-    Serial.println(gamePad.LeftTrigger);
+    Serial.println(int(gamePad.LeftTrigger));
   }
 }
 
@@ -342,6 +349,7 @@ void setup() {
 
 uint64_t t1 = 0;
 bool flag = 0;
+int pos = 90;
 
 void loop() {
   // Serial.println("Loop");
@@ -358,32 +366,40 @@ void loop() {
   // motor(2, -200);
   // motor(3, -200);
 
-  // if (!nado_rabotat()) {
-  //   motor(1, 0);
-  //   motor(2, 0);
-  //   motor(3, 0);
-  //   delay(2);
-  // }
-  // else {
-  //   if(gamePad.DPad_Right) {
-  //     servo.write(110);
-  //   }
-  //   if(gamePad.DPad_Left) {
-  //     servo.write(70);
-  //   }
-  //   if(gamePad.DPad_Down ) {
-  //     motor(1, 200);
-  //     motor(2, 250);
-  //     motor(3, 250);
-  //   }
-  //   if(gamePad.DPad_Up) {
-  //     motor(1, -250);
-  //     motor(2, -200);
-  //     motor(3, -200);
-  //   }
-  //   if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
-  //     manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
-  //   }
-  // }
+  if (!nado_rabotat()) {
+    motor(1, 0);
+    motor(2, 0);
+    motor(3, 0);
+    delay(2);
+  }
+  else {
+    if(gamePad.DPad_Right) {
+      if (pos < 110) {
+        pos += 8;
+        servo.write(pos);
+        delay(100);
+      }
+    }
+    if(gamePad.DPad_Left) {
+      if (pos > 25) {
+        pos -= 8;
+        servo.write(pos);
+        delay(100);
+      }
+    }
+    if(gamePad.DPad_Down) {
+      motor(1, 200);
+      motor(2, 250);
+      motor(3, 250);
+    }
+    if(gamePad.DPad_Up) {
+      motor(1, -250);
+      motor(2, -200);
+      motor(3, -200);
+    }
+    if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
+      manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
+    }
+  }
   // delay(500);
 }
