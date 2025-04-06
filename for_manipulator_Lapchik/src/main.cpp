@@ -184,19 +184,22 @@ struct GamePad {
 
 GamePad gamePad;
 
-uint16_t crc16_ccitt(const uint8_t* gamePad, uint8_t length) {
-    uint16_t crc = 0xFFFF;
-    for (uint8_t i = 0; i < length; ++i) {
-        crc ^= (uint16_t)gamePad[i] << 8;
-        for (uint8_t j = 0; j < 8; ++j) {
-            crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
-        }
-    }
-    return crc;
+uint16_t crc16_ccitt(const uint8_t* data, int length) {
+  uint16_t crc = 0xFFFF;
+  
+  for (int i = 0; i < length; ++i) {
+      crc ^= static_cast<uint16_t>(data[i]) << 8;
+      
+      for (int j = 0; j < 8; ++j) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      }
+  }
+  
+  return crc;
 }
 
 bool readPacket() {
-  static uint8_t packet[13];
+  static uint8_t packet[15];
   static uint8_t index = 0;
   static unsigned long lastByteTime = 0;
   
@@ -213,23 +216,28 @@ bool readPacket() {
       packet[index++] = b;
       
       // Полный пакет
-      if (index >= 13) {
+      if (index >= 15) {
           index = 0;
           
           // Проверка CRC (байты 1-11)
-          uint16_t receivedCrc = (packet[11] << 8) | packet[12];
-          uint16_t calculatedCrc = crc16_ccitt(&packet[1], 10);
+          // uint16_t receivedCrc = (packet[13] << 8) | packet[14];
+          uint16_t receivedCrc = packet[14];
+          uint16_t calculatedCrc = crc16_ccitt(&packet[1], 12);  // 12 байт данных в пакете
           
           if (receivedCrc != calculatedCrc) {
-              gamePad.CRC_Error = true;
-              return false;
+            Serial.println(receivedCrc); 
+            Serial.println(calculatedCrc);
+            gamePad.CRC_Error = true;
+            return false;
           }
           
+          Serial.println(receivedCrc); 
+          Serial.println(calculatedCrc);
           // Распаковка данных
-          gamePad.A          = packet[1] & 0x40;
-          gamePad.B          = packet[1] & 0x80;
-          gamePad.X          = packet[1] & 0x10;
-          gamePad.Y          = packet[1] & 0x20;
+          gamePad.A          = packet[1] & 0x80;
+          gamePad.B          = packet[1] & 0x40;
+          gamePad.X          = packet[1] & 0x20;
+          gamePad.Y          = packet[1] & 0x10;
           gamePad.DPad_Up    = packet[1] & 0x08;
           gamePad.DPad_Down  = packet[1] & 0x04;
           gamePad.DPad_Left  = packet[1] & 0x02;
@@ -249,6 +257,9 @@ bool readPacket() {
           gamePad.RightTrigger    = packet[10] & 0x04;
           gamePad.Start           = packet[10] & 0x02;
           gamePad.Back            = packet[10] & 0x01;
+
+          gamePad.LeftTrigger     = (packet[11] & 0xFF);
+          gamePad.RightTrigger    = (packet[12]  & 0xFF);
           
           gamePad.CRC_Error = false;
           return true;
@@ -262,7 +273,6 @@ void printTrigger() {
     Serial.println(gamePad.LeftTrigger);
   }
 }
-
 
 void printPacket() {
   if (readPacket()) {
@@ -288,7 +298,7 @@ void printPacket() {
   } else if(gamePad.CRC_Error) {
     Serial.println("CRC Error!");
   }
-// delay(20);
+delay(20);
 }
 
 int min_LeftThumbX = 4000, min_LeftThumbY = 4000;
@@ -314,7 +324,7 @@ void setup() {
   pinMode(PWM3, 1);
   // pinMode(17, INPUT_PULLUP);
 
-  Serial3.begin(19200);
+  // Serial3.begin(19200);
   Serial1.begin(19200);
   Serial.begin(19200);
   servo.attach(46);
@@ -334,6 +344,12 @@ uint64_t t1 = 0;
 bool flag = 0;
 
 void loop() {
+  // Serial.println("Loop");
+  // if (Serial1.available() > 0) {
+  //   Serial.println("Serial1");
+  //   Serial.write(Serial1.read());
+  //   Serial.println("Serial1");
+  // }
   printPacket();
   // printTrigger();
   
@@ -342,32 +358,32 @@ void loop() {
   // motor(2, -200);
   // motor(3, -200);
 
-  if (!nado_rabotat()) {
-    motor(1, 0);
-    motor(2, 0);
-    motor(3, 0);
-    delay(2);
-  }
-  else {
-    if(gamePad.DPad_Right) {
-      servo.write(110);
-    }
-    if(gamePad.DPad_Left) {
-      servo.write(70);
-    }
-    if(gamePad.DPad_Down ) {
-      motor(1, 200);
-      motor(2, 250);
-      motor(3, 250);
-    }
-    if(gamePad.DPad_Up) {
-      motor(1, -250);
-      motor(2, -200);
-      motor(3, -200);
-    }
-    if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
-      manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
-    }
-  }
+  // if (!nado_rabotat()) {
+  //   motor(1, 0);
+  //   motor(2, 0);
+  //   motor(3, 0);
+  //   delay(2);
+  // }
+  // else {
+  //   if(gamePad.DPad_Right) {
+  //     servo.write(110);
+  //   }
+  //   if(gamePad.DPad_Left) {
+  //     servo.write(70);
+  //   }
+  //   if(gamePad.DPad_Down ) {
+  //     motor(1, 200);
+  //     motor(2, 250);
+  //     motor(3, 250);
+  //   }
+  //   if(gamePad.DPad_Up) {
+  //     motor(1, -250);
+  //     motor(2, -200);
+  //     motor(3, -200);
+  //   }
+  //   if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
+  //     manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
+  //   }
+  // }
   // delay(500);
 }
