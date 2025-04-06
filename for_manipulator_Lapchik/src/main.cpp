@@ -196,65 +196,65 @@ uint16_t crc16_ccitt(const uint8_t* gamePad, uint8_t length) {
 }
 
 bool readPacket() {
-    static uint8_t packet[13];
-    static uint8_t index = 0;
-    static unsigned long lastByteTime = 0;
-    
-    while (Serial1.available()) {
-        uint8_t b = Serial1.read();
-        
-        // Сброс при длительном простое
-        if (millis() - lastByteTime > 50) index = 0;
-        lastByteTime = millis();
-        
-        // Поиск стартового байта
-        if (index == 0 && b != 0x0A) continue;
-        
-        packet[index++] = b;
-        
-        // Полный пакет
-        if (index >= 13) {
-            index = 0;
-            
-            // Проверка CRC (байты 1-11)
-            uint16_t receivedCrc = (packet[11] << 8) | packet[12];
-            uint16_t calculatedCrc = crc16_ccitt(&packet[1], 10);
-            
-            if (receivedCrc != calculatedCrc) {
-                gamePad.CRC_Error = true;
-                return false;
-            }
-            
-            // Распаковка данных
-            gamePad.A          = packet[1] & 0x40;
-            gamePad.B          = packet[1] & 0x80;
-            gamePad.X          = packet[1] & 0x10;
-            gamePad.Y          = packet[1] & 0x20;
-            gamePad.DPad_Up    = packet[1] & 0x08;
-            gamePad.DPad_Down  = packet[1] & 0x04;
-            gamePad.DPad_Left  = packet[1] & 0x02;
-            gamePad.DPad_Right = packet[1] & 0x01;
-            
-            gamePad.LeftThumbX  = (packet[2] << 8) | packet[3];
-            gamePad.LeftThumbY  = (packet[4] << 8) | packet[5];
-            gamePad.RightThumbX = (packet[6] << 8) | packet[7];
-            gamePad.RightThumbY = (packet[8] << 8) | packet[9];
-            
-            gamePad.LeftThumbPress  = packet[10] & 0x80;
-            gamePad.RightThumbPress = packet[10] & 0x40;
-            gamePad.LB              = packet[10] & 0x20;
-            gamePad.RB              = packet[10] & 0x10;
-            // gamePad.LeftTrigger     = packet[10] & 0x08 ? 255 : 0;
-            gamePad.LeftTrigger     = packet[10] & 0x08;
-            gamePad.RightTrigger    = packet[10] & 0x04;
-            gamePad.Start           = packet[10] & 0x02;
-            gamePad.Back            = packet[10] & 0x01;
-            
-            gamePad.CRC_Error = false;
-            return true;
-        }
-    }
-    return false;
+  static uint8_t packet[13];
+  static uint8_t index = 0;
+  static unsigned long lastByteTime = 0;
+  
+  while (Serial1.available()) {
+      uint8_t b = Serial1.read();
+      
+      // Сброс при длительном простое
+      if (millis() - lastByteTime > 50) index = 0;
+      lastByteTime = millis();
+      
+      // Поиск стартового байта
+      if (index == 0 && b != 0x0A) continue;
+      
+      packet[index++] = b;
+      
+      // Полный пакет
+      if (index >= 13) {
+          index = 0;
+          
+          // Проверка CRC (байты 1-11)
+          uint16_t receivedCrc = (packet[11] << 8) | packet[12];
+          uint16_t calculatedCrc = crc16_ccitt(&packet[1], 10);
+          
+          if (receivedCrc != calculatedCrc) {
+              gamePad.CRC_Error = true;
+              return false;
+          }
+          
+          // Распаковка данных
+          gamePad.A          = packet[1] & 0x40;
+          gamePad.B          = packet[1] & 0x80;
+          gamePad.X          = packet[1] & 0x10;
+          gamePad.Y          = packet[1] & 0x20;
+          gamePad.DPad_Up    = packet[1] & 0x08;
+          gamePad.DPad_Down  = packet[1] & 0x04;
+          gamePad.DPad_Left  = packet[1] & 0x02;
+          gamePad.DPad_Right = packet[1] & 0x01;
+          
+          gamePad.LeftThumbX  = (packet[2] << 8) | packet[3];
+          gamePad.LeftThumbY  = (packet[4] << 8) | packet[5];
+          gamePad.RightThumbX = (packet[6] << 8) | packet[7];
+          gamePad.RightThumbY = (packet[8] << 8) | packet[9];
+          
+          gamePad.LeftThumbPress  = packet[10] & 0x80;
+          gamePad.RightThumbPress = packet[10] & 0x40;
+          gamePad.LB              = packet[10] & 0x20;
+          gamePad.RB              = packet[10] & 0x10;
+          // gamePad.LeftTrigger     = packet[10] & 0x08 ? 255 : 0;
+          gamePad.LeftTrigger     = packet[10] & 0x08;
+          gamePad.RightTrigger    = packet[10] & 0x04;
+          gamePad.Start           = packet[10] & 0x02;
+          gamePad.Back            = packet[10] & 0x01;
+          
+          gamePad.CRC_Error = false;
+          return true;
+      }
+  }
+  return false;
 }
 
 void printTrigger() {
@@ -334,40 +334,40 @@ uint64_t t1 = 0;
 bool flag = 0;
 
 void loop() {
-  // printPacket();
-  printTrigger();
+  printPacket();
+  // printTrigger();
   
   // manipulator(32000, 32000);
   // motor(1, 200);
   // motor(2, -200);
   // motor(3, -200);
 
-  // if (!nado_rabotat()) {
-  //   motor(1, 0);
-  //   motor(2, 0);
-  //   motor(3, 0);
-  //   delay(2);
-  // }
-  // else {
-  //   if(gamePad.DPad_Right) {
-  //     servo.write(110);
-  //   }
-  //   if(gamePad.DPad_Left) {
-  //     servo.write(70);
-  //   }
-  //   if(gamePad.DPad_Down ) {
-  //     motor(1, 200);
-  //     motor(2, 250);
-  //     motor(3, 250);
-  //   }
-  //   if(gamePad.DPad_Up) {
-  //     motor(1, -250);
-  //     motor(2, -200);
-  //     motor(3, -200);
-  //   }
-  //   if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
-  //     manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
-  //   }
-  // }
+  if (!nado_rabotat()) {
+    motor(1, 0);
+    motor(2, 0);
+    motor(3, 0);
+    delay(2);
+  }
+  else {
+    if(gamePad.DPad_Right) {
+      servo.write(110);
+    }
+    if(gamePad.DPad_Left) {
+      servo.write(70);
+    }
+    if(gamePad.DPad_Down ) {
+      motor(1, 200);
+      motor(2, 250);
+      motor(3, 250);
+    }
+    if(gamePad.DPad_Up) {
+      motor(1, -250);
+      motor(2, -200);
+      motor(3, -200);
+    }
+    if(abs(gamePad.LeftThumbX) > min_LeftThumbX || abs(gamePad.LeftThumbY) > min_LeftThumbY) {
+      manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
+    }
+  }
   // delay(500);
 }
