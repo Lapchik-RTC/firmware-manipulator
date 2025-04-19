@@ -5,14 +5,22 @@ Servo servo;
 
 #define INA1 11
 #define INB1 10
-#define INA2 16
-#define INB2 9
-#define INA3 5
-#define INB3 12
+#define INA2 5
+#define INB2 12
+#define INA3 9
+#define INB3 16
 #define PWM1 7
-#define PWM2 4
-#define PWM3 6
+#define PWM2 6
+#define PWM3 4
+#define CS_PIN_1 A2
+#define CS_PIN_2 A0
+#define CS_PIN_3 A1
 
+#define NACHALO 0
+#define SHVATIL_BANKU 1
+#define SDVIG_X 10
+#define SDVIG_Y 20
+// #define NACHALO 4
 
 void motor(int motor, int vel) {
   int in1 = 0, in2 = 0, pwmPin = 0;
@@ -42,7 +50,7 @@ void motor(int motor, int vel) {
   vel = abs(vel);
   analogWrite(pwmPin, min(vel, 255));
   delay(1);
-}   
+}
 
 double dist(double x1, double y1, double x2, double y2) {
   return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -151,20 +159,22 @@ void manipulator(int x1, int y1, bool vpered, bool nazad, bool hvatay) {
     findVs(-x, -y);
     
   }
-  else if (vpered) {
+  if (vpered) {
     motor(1, 180);
     motor(2, 200);
     motor(3, 200);
+    delay(50);
   }
-  else if (nazad) {
+  if (nazad) {
     motor(1, -180);
     motor(2, -200);
     motor(3, -200);
+    delay(50);
   }
-  else if (hvatay) {
+  if (hvatay) {
     servo.write(135);
   }
-  else if (!hvatay) {
+  if (!hvatay) {
     servo.write(180);
   }
 
@@ -172,124 +182,9 @@ void manipulator(int x1, int y1, bool vpered, bool nazad, bool hvatay) {
     motor(1, 0);
     motor(2, 0);
     motor(3, 0);
+    delay(100);
   }
   // Serial.println(vel1);
-}
-
-int v_vpered = 90;
-int v_vpered_levo = 140;
-int err = 26;
-int v_angle = 70;
-float kp = 3;
-float kd = 3;
-static int volatile errOld = 0;
-static int u = 0;
-
-void azimut(int zahvat_x, int zahvat_y, int tag_x, int tag_y) {
-    
-    int e = tag_x - zahvat_x;
-    u = int(e*kp + (e - errOld)* kd);
-    u = constrain(u, 0, 100);
-    errOld = e;
-    // int v_vpered = v_angle - u;
-    Serial.print(v_vpered - err);
-    Serial.print("\t");
-    Serial.print(v_vpered_levo + u);
-    Serial.print("\t");
-    Serial.print(v_vpered  - u);
-    Serial.println("\t");
-    // motor(1, v_vpered - err);
-    // motor(2, v_vpered + u);
-    // motor(3, v_vpered - u);
-    motor(1, v_vpered - err);
-    motor(2, v_vpered_levo + u);
-    motor(3, v_vpered - u);
-}
-
-float kp_x = 2;
-float kd_x = 20;
-static int volatile errOld_x = 0;
-static int u_x = 0;
-
-void shag_x(int16_t x_zahvat, int16_t x_aim) {
-  int e;
-  if (x_aim >= x_zahvat) {
-    e = (x_aim + 20) - x_zahvat;
-  }
-  else {
-    e = (x_aim - 20) - x_zahvat;
-  }
-  // u_x = int(e*kp_x + ((e - errOld_x)*kd_x));
-  u_x = int(e*kp_x);
-  u_x = constrain(u_x, -60, 60);
-  errOld_x = e;
-  // Serial.print(0);
-  // Serial.print("\t");
-  // Serial.print(v_vpered_levo + u_x);
-  // Serial.print("\t");
-  // Serial.print(v_vpered - u_x);
-  // Serial.println("\t");
-  // motor(1, v_vpered - err);
-  // motor(2, v_vpered + u);
-  // motor(3, v_vpered - u);
-  if (u_x > 0) {
-  // motor(1, 55);
-  // motor(2, v_vpered_levo + u_x);
-  // motor(3, v_vpered - u_x);
-  motor(1, 25);
-  motor(2, +u_x);
-  motor(3, -u_x);
-  delay(130);
-  motor(1, 0);
-  motor(2, 0);
-  motor(3, 0);
-  delay(270);
-  }
-  else {
-  motor(1, 25);
-  motor(2, +u_x);
-  motor(3, -u_x);
-  delay(130);
-  motor(1, 0);
-  motor(2, 0);
-  motor(3, 0);
-  delay(270);
-  }
-}
-
-float kp_y = 0.6;
-float kd_y = 7;
-int volatile errOld_y = 0;
-int u_y = 0;
-int v_vpered_y = 40;
-
-void shag_y(int16_t y_zahvat, int16_t y_aim) {
-  int e = y_zahvat - y_aim;
-  // u_y = int(e*kp_y + ((e - errOld_y)* kd_y));
-  u_y = int(e*kp_y);
-  u_y = constrain(u_y, -80, 80);
-  // errOld_y = e;
-  int v1;
-  int v2;
-  int v3;
-  if (u_y > 0) {
-    v1 = v_vpered_y + 30;
-    v2 = v_vpered_y + 15 +u_y;
-    v3 = v_vpered_y + u_y;
-  }
-  else {
-    v1 = -v_vpered_y - 30;
-    v2 = -v_vpered_y - 15 + u_y;
-    v3 = -v_vpered_y + u_y;
-  }
-  motor(1, v1);
-  motor(2, v2);
-  motor(3, v3);
-  delay(150);
-  motor(1, 0);
-  motor(2, 0);
-  motor(3, 0);
-  delay(350);
 }
 
 struct Data
@@ -385,6 +280,37 @@ int16_t pole_y_const = 0;
 
 static int pos = 0;
 
+float filter(int cs) {  // Фильтрация нулевых значений и шумов
+  int i = 0;
+  bool flag_corrent = 0;
+  int cspin = 0;
+  int size = 10;
+  float currentBuffer[size] = {0};
+  int bufferIndex = 0;         
+  float currentFiltered = 0;
+  if(cs == 1) cspin = CS_PIN_1;
+  if(cs == 2) cspin = CS_PIN_2;
+  if(cs == 3) cspin = CS_PIN_3;
+  // int rawValue = analogRead(cspin);
+  // float voltage = (rawValue * 10.0) / 1023.0;
+  // float current = voltage / 0.13;
+  // float current = rawValue * 10;
+  while(flag_corrent == 0) {
+    float Value = (analogRead(cspin)*30) / (2.2*1023);
+    if(Value > 0.01 && flag_corrent == 0) {
+      currentBuffer[i] = Value;
+      i++;
+    }
+    if (i == size - 1) {
+      flag_corrent = 1;
+      for (int j = 0; j < size; j++) {
+        currentFiltered += currentBuffer[j];
+      }
+      currentFiltered = (currentFiltered / size)*100;
+    }
+  }
+  return currentFiltered;
+}
 
 void printData(const Data& d) {
   Serial.print("  tag_x: "); Serial.print(d.tag_x);
@@ -397,7 +323,7 @@ void printData(const Data& d) {
   Serial.print("  CRC_Error: "); Serial.print(d.CRC_Error ? "true " : "false ");
   Serial.print("  teg_y_const: "); Serial.print(tag_y_const); 
   Serial.print("  pole_x_const: "); Serial.print(pole_x_const); 
-  Serial.print("  u_x: "); Serial.println(u_x);
+  Serial.print("  u_x: "); Serial.println(filter(1));
 }
 
 void stop() {
@@ -425,7 +351,152 @@ bool baze_values(Data& d) {
   return false;
 }
 
+int v_vpered = 90;
+int v_vpered_levo = 140;
+int err = 26;
+int v_angle = 70;
+float kp = 3;
+float kd = 3;
+static int volatile errOld = 0;
+static int u = 0;
 
+void azimut(int zahvat_x, int zahvat_y, int tag_x, int tag_y) {
+    
+    int e = tag_x - zahvat_x;
+    u = int(e*kp + (e - errOld)* kd);
+    u = constrain(u, 0, 100);
+    errOld = e;
+    // int v_vpered = v_angle - u;
+    Serial.print(v_vpered - err);
+    Serial.print("\t");
+    Serial.print(v_vpered_levo + u);
+    Serial.print("\t");
+    Serial.print(v_vpered  - u);
+    Serial.println("\t");
+    // motor(1, v_vpered - err);
+    // motor(2, v_vpered + u);
+    // motor(3, v_vpered - u);
+    motor(1, v_vpered - err);
+    motor(2, v_vpered_levo + u);
+    motor(3, v_vpered - u);
+}
+
+int condition = NACHALO;
+
+float kp_x = 10;
+float kd_x = 25;
+static int volatile errOld_x = 0;
+static int u_x = 0;
+
+void  shag_x(int16_t x_zahvat, int16_t x_aim) {
+  int e;
+  if (condition == NACHALO) {
+    if(x_zahvat > 160) {
+      e = (x_aim - SDVIG_X) - x_zahvat;
+    }
+    else {
+      e = (x_aim + SDVIG_X) - x_zahvat;
+    }
+      // u_x = int(e*kp_x + ((e - errOld_x)*kd_x));
+      u_x = int(e*kp_x + (e - errOld_x)* kd_x);
+      u_x = constrain(u_x, -80, 80);
+      errOld_x = e;
+  }
+  else if (condition == SHVATIL_BANKU) {
+    if(x_zahvat > 160) {
+      e = (x_aim - SDVIG_X) - x_zahvat;
+    }
+    else {
+      e = (x_aim + SDVIG_X) - x_zahvat;
+    }
+      // u_x = int(e*kp_x + ((e - errOld_x)*kd_x));
+      u_x = int(e*kp_x + (e - errOld_x)* kd_x);
+      u_x = constrain(u_x, -70, 70);
+      errOld_x = e;
+  }
+  Serial.println(u_x);
+  // Serial.print(0);
+  // Serial.print("\t");
+  // Serial.print(v_vpered_levo + u_x);
+  // Serial.print("\t");
+  // Serial.print(v_vpered - u_x);
+  // Serial.println("\t");
+  // motor(1, v_vpered - err);
+  // motor(2, v_vpered + u);
+  // motor(3, v_vpered - u);
+                                      // if (u_x > 0) {
+  // motor(1, 55);
+  // motor(2, v_vpered_levo + u_x);
+  // motor(3, v_vpered - u_x);
+  motor(1, 21);
+  motor(2, u_x);
+  motor(3, -u_x);
+  delay(130);
+  motor(1, -21);
+  motor(2, -u_x);
+  motor(3, u_x);
+  delay(10);
+  motor(1, 0);
+  motor(2, 0);
+  motor(3, 0);
+  delay(150);
+  // }
+  // else {
+  // motor(1, 25);
+  // motor(2, +u_x);
+  // motor(3, -u_x);
+  // delay(130);
+  // motor(1, 0);
+  // motor(2, 0);
+  // motor(3, 0);
+  // delay(270);
+  // }
+}
+
+
+float kp_y = 2;
+float kd_y = 3;
+int volatile errOld_y = 0;
+int u_y = 0;
+int v_vpered_y = 50;
+int max_v1 = 87;
+int max_v2 = 115;
+
+void shag_y(float y_zahvat, int16_t y_aim) {
+  int v1_y;
+  int v2_y;
+  int v3_y;
+  int k = 1;
+  if(y_aim > int(y_zahvat)) k = -1;
+                                                                                        //   y = 20 * (1 - (96 / azhvat_y))
+  y_zahvat = constrain(y_zahvat, 50, 240);
+  y_zahvat = y_zahvat - 80;
+  v1_y = int(max_v1 * (y_zahvat/28));
+  v2_y = int(max_v2 * (y_zahvat/30));
+  v3_y = v2_y;
+
+  v1_y = v1_y*k;
+  v2_y = v2_y*k;
+  v3_y = v3_y*k;
+  Serial.print(v1_y);
+  Serial.print("\t");
+  Serial.print(v2_y);
+  Serial.print("\t");
+  Serial.print(v3_y);
+  Serial.println("\t");
+  motor(1, v1_y);
+  motor(2, v2_y);
+  motor(3, v3_y);
+  delay(150);
+  motor(1, -v1_y);
+  motor(2, -v2_y);
+  motor(3, -v3_y);
+  delay(20);
+  motor(1, 0);
+  motor(2, 0);
+  motor(3, 0);
+  delay(150);
+}
 
 #define SERIAL1_RX_BUFFER_SIZE 256
 
@@ -445,8 +516,8 @@ struct GamePad {
     bool RightThumbPress;
     bool LB;
     bool RB;
-    uint8_t LeftTrigger;
-    uint8_t RightTrigger;
+    bool LeftTrigger;
+    bool RightTrigger;
     bool Start;
     bool Back;
     
@@ -474,6 +545,7 @@ bool readPacket() {
     
     while (Serial1.available()) {
         uint8_t b = Serial1.read();
+        // Serial.print("читаем");
         
         // Сброс при длительном простое
         if (millis() - lastByteTime > 50) index = 0;
@@ -487,7 +559,7 @@ bool readPacket() {
         // Полный пакет
         if (index >= 13) {
             index = 0;
-            
+            // Serial.print(packet[1]);
             // Проверка CRC (байты 1-11)
             uint16_t receivedCrc = (packet[11] << 8) | packet[12];
             uint16_t calculatedCrc = crc16_ccitt(&packet[1], 10);
@@ -498,10 +570,10 @@ bool readPacket() {
             }
             
             // Распаковка данных
-            gamePad.A          = packet[1] & 0x80;
-            gamePad.B          = packet[1] & 0x40;
-            gamePad.X          = packet[1] & 0x20;
-            gamePad.Y          = packet[1] & 0x10;
+            gamePad.A          = packet[1] & 0x40;
+            gamePad.B          = packet[1] & 0x80;
+            gamePad.X          = packet[1] & 0x10;
+            gamePad.Y          = packet[1] & 0x20;
             gamePad.DPad_Up    = packet[1] & 0x08;
             gamePad.DPad_Down  = packet[1] & 0x04;
             gamePad.DPad_Left  = packet[1] & 0x02;
@@ -526,10 +598,12 @@ bool readPacket() {
             return true;
         }
     }
+    // Serial.print("NO");
     return false;
 }
 
 void printPacket() {
+  // Serial.println("Valid packet:");
   if (readPacket()) {
     Serial.println("Valid packet:");
     Serial.print("LeftThumbX: "); Serial.print(gamePad.LeftThumbX);
@@ -556,6 +630,56 @@ void printPacket() {
 // delay(20);
 }
 
+uint64_t tim = 0;
+uint64_t tim_old = 0;
+bool state = 1, stButton = false;
+// void readButton(bool knopka){
+//   if(knopka){
+//     // Serial.println("Button pressed");
+//     if(!stButton) {
+//       tim = millis();
+//       if(tim - tim_old < 1000) {
+//         state = 1;
+//       }
+//       else {
+//         state = 0;
+//       }
+//       stButton = true;
+//       tim_old = tim;
+//     }
+//   }
+//   else if (stButton){
+//       stButton = false;
+//   }
+//   delay(1000);
+// }
+
+void readButton(bool knopka){
+  if(knopka){
+    tim = millis();
+    if(tim - tim_old < 3000) {
+      state = 1;
+    }
+    else {
+      state = 0;
+    }
+    tim_old = tim;
+  }
+  // else if (stButton){
+  //     stButton = false;
+  // }
+  delay(3000);
+}
+
+uint64_t time_chek = 0;
+void modeSelection() {
+  time_chek = millis();
+  while(time_chek > millis() - 3000) {
+    readButton(gamePad.A);
+    readPacket();
+  }
+  time_chek = millis();
+} 
 
 void setup() {
   pinMode(INA1, 1);
@@ -565,15 +689,15 @@ void setup() {
   pinMode(INB2, 1);
   pinMode(PWM2, 1);
   pinMode(17, INPUT_PULLUP);
+  pinMode(A0, INPUT);
 
   Serial3.begin(115200);
   Serial1.begin(19200);
   Serial.begin(115200);
   servo.attach(8);
-  servo.write(130);
+  servo.write(110);
   delay(1000);
 
-  
   memset(&gamePad, 0, sizeof(gamePad));
   // while(true);
   // while(!digitalRead(17));
@@ -585,200 +709,184 @@ void setup() {
 
 uint64_t t1 = 0;
 bool flag_2 = true;
+bool s = 1;
+
+// void loop() {
+  // GamePad gamePad;
+  // readPacket();
+  // modeSelection();
+  // Serial.println(state);
+  // readButton(gamePad.A);
+  // printPacket();
+// }
+
 
 void loop() {
-  while(true) {
-  // while(true) {
-  //   motor(1, 250);
-  //   motor(2, 250);
-  //   motor(3, 250);
-  // }
-  while(!digitalRead(17)) {
-    motor(1, 0);
-    motor(2, 0);
-    motor(3, 0);
-    Serial.println("Возвращаемся в стартовую позицию");
-    delay(200);
-    // motor(1, 120);
-    // motor(2, 90);
-    // motor(3, 90);
-    // delay(500);
-    motor(1, -175);
-    motor(2, -200);
-    motor(3, -180);
-    Serial.println("Возвращаемся в стартовую позицию");
-    delay(300);
+  // while(1) {
+  //   motor(1, -200);
+  //   motor(2, -200);
+  //   motor(3, -200);
+  //   delay(100);
+  // } 
+  if(!s) {
+    readPacket();
+    printPacket();
+    manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY, gamePad.DPad_Up, gamePad.DPad_Down, gamePad.B);
+    // modeSelection();
   }
-  // printPacket();
-  // if(!Serial1.available()) {
-  // if(readPacket()) {
-  printPacket();
-  manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY, gamePad.DPad_Up, gamePad.DPad_Down, gamePad.A);
-
-  delay(50);
-  // }
-  // }
-}
-
-  Data d = readInt();
-  printData(d);
-  while(flag) {
-    baze_values(d);
-    d = readInt(); 
-    Serial.println("vechno");
-  }
-  Serial.println("start");
-  if (!d.CRC_Error && !flag && d.zahvat_x != 0  ) {
-    if (pos == 0) {
-      while (abs(tag_y_const - d.zahvat_y) > 90 && d.zahvat_y != 0 && flag_2) {
-        if (abs(tag_y_const - d.zahvat_y) < 90) {
-          flag_2 = false;
-        }
-        shag_y(d.zahvat_y, (tag_y_const));
-        Serial.println("X");
-        d = readInt();
-        printData(d);
-      }
-      if (abs(tag_y_const - d.zahvat_y) > 20 && d.zahvat_y != 0) {
-        shag_y(d.zahvat_y, (tag_y_const));
-        Serial.println("Y_1");
-        d = readInt();
-        printData(d);
-      }
-      if (abs(tag_x_const - d.zahvat_x) > 8 && d.zahvat_x != 0) {
-        shag_x(d.zahvat_x, (tag_x_const));
-        Serial.println("Y_1");
-        d = readInt();
-        printData(d);
-      }
-      if(abs(tag_y_const - d.zahvat_y) < 80 && d.zahvat_y != 0) {
-        servo.write(180);
-        Serial.println("servo OPEN");
-        // motor(1, 80);
-        // motor(2, 230);
-        // motor(3, 125);
-        // delay(3000);
-        d = readInt();
-        printData(d);
-      }
+  if (state) {
+    pos = 2;
+    Data d = readInt();
+    printData(d);
+    if(flag && state) {
+      baze_values(d);
       d = readInt();
-      printData(d);
-      if (d.zahvat_y < (tag_y_const + 30) && d.zahvat_y != 0) {
-        stop();
-        motor(1, -200);
-        motor(2, -200);
-        motor(3, -200);
-        delay(1000);
-        servo.write(135);
-        // motor(1, -150);
-        // motor(2, 0);
-        // motor(3, 0);
-        // delay(600);
-        Serial.println("servo CLOSE");
-        stop();
-        motor(1, -150);
-        motor(2, -125);
-        motor(3, -125);
-        delay(6500);
-        stop();
-        motor(1, -200);
-        motor(2, 150);
-        motor(3, 150);
-        delay(800);
-        stop();
-        motor(1, 200);
-        motor(2, -150);
-        motor(3, -150);
-        delay(200);
-        Serial.println("stop");
-        d = readInt();
-        printData(d);
-        
-        stop();
-        // while (true)
-        // {
-        //   /* code */
-        // }
-        pos = 1;
-        // motor(1, 40);
-        // motor(2, -80);
-        // motor(3, 120);
-        // delay(300);
-      }
+      Serial.println("vechno");
     }
-    else if (pos == 1) {
-      d = readInt();
-      printData(d);
-      if (abs(d.zahvat_x - pole_x_const) > 18 && d.zahvat_x != 0) {
-        shag_x(d.zahvat_x, (pole_x_const));
-        Serial.println("X");
-
-      }
-      if ((abs(pole_y_const - d.zahvat_y) > 12 && d.zahvat_y != 0) || abs(d.zahvat_x - pole_x_const) > 22) {
-        if (abs(pole_y_const - d.zahvat_y) > 12) { 
-          shag_y(d.zahvat_y, pole_y_const);
-          Serial.println("Y_1");
-          // d = readInt();
-          // printData(d);
+    Serial.println("start");
+    if (!d.CRC_Error && !flag && d.zahvat_x != 0  ) {
+      if (pos == 0) {
+        while (abs(tag_y_const - d.zahvat_y) > 50 && d.zahvat_y != 0 && flag_2) {
+          if (abs(tag_y_const - d.zahvat_y) < 50) {
+            flag_2 = false;
+          }
+          shag_y(d.zahvat_y, (tag_y_const));
+          Serial.println("X");
+          d = readInt();
+          printData(d);
         }
+        if (abs(tag_y_const - d.zahvat_y) > 15 && d.zahvat_y != 0) {
+          shag_y(d.zahvat_y, (tag_y_const));
+          Serial.println("Y_1");
+          d = readInt();
+          printData(d);
+        }
+        if (abs(tag_x_const - d.zahvat_x) > 10 && d.zahvat_x != 0) {
+          shag_x(d.zahvat_x, (tag_x_const));
+          Serial.println("X_1");
+          d = readInt();
+          printData(d);
+        }
+        if(abs(tag_y_const - d.zahvat_y) < 60 && d.zahvat_y != 0) {
+          servo.write(180);
+          Serial.println("servo OPEN");
           // motor(1, 80);
           // motor(2, 230);
           // motor(3, 125);
           // delay(3000);
-          // d = readInt();
-          // printData(d);
-        if (abs(d.zahvat_x - pole_x_const) > 22 && d.zahvat_x != 0) {
-          shag_x(d.zahvat_x, (pole_x_const));
+          d = readInt();
+          printData(d);
+          shag_y(d.zahvat_y, (tag_y_const - 10));
+        }
+        d = readInt();
+        printData(d);
+        if (d.zahvat_y < (tag_y_const + 5) && d.zahvat_y != 0) {
+          stop();
+          motor(1, -200);
+          motor(2, -200);
+          motor(3, -200);
+          delay(1000);
+          servo.write(135);
+          // motor(1, -150);
+          // motor(2, 0);
+          // motor(3, 0);
+          // delay(600);
+          Serial.println("servo CLOSE");
+          stop();
+          motor(1, -150);
+          motor(2, -125);
+          motor(3, -130);
+          delay(3500);
+          stop();
+          motor(1, -200);
+          motor(2, 180);
+          motor(3, 150);
+          delay(400);
+          stop();
+          // motor(1, 200);
+          // motor(2, -150);
+          // motor(3, -150);
+          // delay(200);
+          Serial.println("stop");
+          d = readInt();
+          printData(d);
+          
+          stop();
+          // while (true)
+          // {
+          //   /* code */
+          // }
+          pos = 1;
+          // motor(1, 40);
+          // motor(2, -80);
+          // motor(3, 120);
+          // delay(300);
         }
       }
+      else if (pos == 1) {
+        d = readInt();
+        printData(d);
+        if (abs(d.zahvat_x - pole_x_const) > 18 && d.zahvat_x != 0) {
+          shag_x(d.zahvat_x, (pole_x_const));
+          Serial.println("X");
+
+        }
+        if ((abs(pole_y_const - d.zahvat_y) > 17 && d.zahvat_y != 0) || abs(d.zahvat_x - pole_x_const) > 22) {
+          if (abs(pole_y_const - d.zahvat_y) > 10) { 
+            shag_y(d.zahvat_y, pole_y_const);
+            Serial.println("Y_1");
+            // d = readInt();
+            // printData(d);
+          }
+          // motor(1, 80);
+            // motor(2, 230);
+            // motor(3, 125);
+            // delay(3000);
+            // d = readInt();
+            // printData(d);
+          if (abs(d.zahvat_x - pole_x_const) > 20 && d.zahvat_x != 0) {
+            shag_x(d.zahvat_x, (pole_x_const));
+          }
+        }
         else {
-          // if (t1 == 0) {
-          //   t1 = millis();
-          // }
-          // else if (t1 - millis() < 6000) {}
-          // else {
-          
           servo.write(180);
           stop();
           Serial.println("servo OPEN");
           pos = 2;
-          motor(1, -255);
+          motor(1, -200);
           motor(2, -125);
-          motor(3, -90);
-          delay(7500);
+          motor(3, -200);
+          delay(3000);
           stop();
-          motor(1, -255);
-          motor(2, 0);
-          motor(3, 0);
-          delay(500);
+          // motor(1, -255);
+          // motor(2, 0);
+          // motor(3, 0);
+          // delay(500);
+          // stop();
+          while(filter(1) < 512 && s) {
+            d = readInt();
+            printData(d);
+            motor(1, -200);
+            motor(2, -150);
+            motor(3, -170);
+            delay(6000);
+            stop();
+            s = false;
+          }
           stop();
           servo.write(110);
-
-          while(true);
-          } 
-      // d = readInt();
-      // printData(d);
-      }    
-    else {
-      stop();
+        }
+      }
     }
-    
     // else {
-    //   Serial.println("kapec");
-    //   Serial.println("kapec");
-    //   stop();
+    //   Serial.println("stopping");
+    //   delay(100);
     // }
   }
-
-  else {
-    // servo.write(160);
-    //       Serial.println("servo OPEN");
-    // stop();
-    Serial.println("stopping");
-    delay(100);
+  if (pos == 2) {
+    
+    modeSelection();
+    Serial.println(state);
+    pos = 0;
   }
-    // printData(d);
-    // delay(500);
-    // testSerRead();
-
 }

@@ -245,6 +245,7 @@ int main() {
                 break;
             }
             WaitForSingleObject(ov.hEvent, INFINITE);
+            ResetEvent(ov.hEvent);
         }
 
         Sleep(30); // Задержка для следующего опроса
