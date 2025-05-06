@@ -729,13 +729,16 @@ void loop() {
   //   delay(100);
   // } 
   if(!s) {
+    while (!s)
+    {  
     readPacket();
     printPacket();
     manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY, gamePad.DPad_Up, gamePad.DPad_Down, gamePad.B);
     // modeSelection();
+    }
   }
   if (state) {
-    pos = 2;
+    // pos = 2;
     Data d = readInt();
     printData(d);
     if(flag && state) {
@@ -746,7 +749,7 @@ void loop() {
     Serial.println("start");
     if (!d.CRC_Error && !flag && d.zahvat_x != 0  ) {
       if (pos == 0) {
-        while (abs(tag_y_const - d.zahvat_y) > 50 && d.zahvat_y != 0 && flag_2) {
+        while (abs(tag_y_const - d.zahvat_y) > 60 && d.zahvat_y != 0 && flag_2) {
           if (abs(tag_y_const - d.zahvat_y) < 50) {
             flag_2 = false;
           }
@@ -767,7 +770,7 @@ void loop() {
           d = readInt();
           printData(d);
         }
-        if(abs(tag_y_const - d.zahvat_y) < 60 && d.zahvat_y != 0) {
+        if(abs(tag_y_const - d.zahvat_y) < 65 && d.zahvat_y != 0) {
           servo.write(180);
           Serial.println("servo OPEN");
           // motor(1, 80);
@@ -780,7 +783,7 @@ void loop() {
         }
         d = readInt();
         printData(d);
-        if (d.zahvat_y < (tag_y_const + 5) && d.zahvat_y != 0) {
+        if (d.zahvat_y < (tag_y_const) && d.zahvat_y != 0) {
           stop();
           motor(1, -200);
           motor(2, -200);
@@ -801,7 +804,7 @@ void loop() {
           motor(1, -200);
           motor(2, 180);
           motor(3, 150);
-          delay(400);
+          delay(450);
           stop();
           // motor(1, 200);
           // motor(2, -150);
@@ -884,7 +887,7 @@ void loop() {
     // }
   }
   if (pos == 2) {
-    
+    Serial.println("pos == 2");
     modeSelection();
     Serial.println(state);
     pos = 0;

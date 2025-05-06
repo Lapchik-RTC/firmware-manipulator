@@ -105,7 +105,9 @@ bool GetGamepadState(int controllerIndex, GamepadState& state) {
     state.DPad_Up = xState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
     state.DPad_Down = xState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
     state.DPad_Left = xState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-    state.DPad_Right = xState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+    state.DPad_Right = xState.Gamepad.wButtons &
+    
+    XINPUT_GAMEPAD_DPAD_RIGHT;
 
     // Стики
     state.LeftThumbX = normalizeStickValue(xState.Gamepad.sThumbLX);
