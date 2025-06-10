@@ -184,7 +184,7 @@ struct GamePad {
 
 GamePad gamePad;
 
-uint16_t crc16_ccitt(const uint8_t* data, int length) {
+uint16_t  crc16_ccitt(const uint8_t* data, int length) {
   uint16_t crc = 0xFFFF;
   
   for (int i = 0; i < length; ++i) {
@@ -199,7 +199,7 @@ uint16_t crc16_ccitt(const uint8_t* data, int length) {
 }
 
 bool readPacket() {
-  static uint8_t packet[15];
+  static uint8_t packet[13];
   static uint8_t index = 0;
   static unsigned long lastByteTime = 0;
   
@@ -221,10 +221,10 @@ bool readPacket() {
           // packet[0] = 0x0A;
           // Проверка CRC (байты 1-11)
           // uint16_t receivedCrc = (packet[12] << 8) | packet[13];
-          uint16_t receivedCrc = packet[14];
-          uint16_t calculatedCrc = crc16_ccitt(&packet[1], 12);  // 12 байт данных в пакете
+          uint16_t receivedCrc = (packet[11] << 8) | packet[12];
+          uint16_t calculatedCrc = crc16_ccitt(&packet[1], 10);  // 12 байт данных в пакете
           
-          if (receivedCrc != 0xFF || packet[13] != 0) {
+          if (receivedCrc != calculatedCrc) {
             Serial.println(receivedCrc); 
             Serial.println(packet[13]);
             gamePad.CRC_Error = true;
@@ -353,11 +353,9 @@ int pos = 90;
 
 //нужная версия кода
 void loop() {
-<<<<<<< HEAD
   // printPacket();
   // printTrigger();
   readPacket();
-=======
   // Serial.println("Loop");
   // if (Serial1.available() > 0) {
   //   Serial.println("Serial1");
@@ -366,7 +364,6 @@ void loop() {
   // }
   printPacket();
   // printTrigger();
->>>>>>> aedd8bd17bf6fedd1247f9b6ef12383466e67d02
   
   // printPacket();
   // readPacket();
@@ -386,7 +383,7 @@ void loop() {
       if (pos < 110) {
         pos += 8;
         servo.write(pos);
-<<<<<<< HEAD
+
         delay(80);
       }
     }
@@ -398,7 +395,6 @@ void loop() {
       }
     }
     if(gamePad.DPad_Up) {
-=======
         delay(100);
       }
     }
@@ -417,16 +413,14 @@ void loop() {
       }
     }
     if(gamePad.DPad_Down) {
->>>>>>> aedd8bd17bf6fedd1247f9b6ef12383466e67d02
       motor(1, 200);
       motor(2, 250);
       motor(3, 250);
     }
-<<<<<<< HEAD
     if(gamePad.DPad_Down) {
-=======
+
     if(gamePad.DPad_Up) {
->>>>>>> aedd8bd17bf6fedd1247f9b6ef12383466e67d02
+
       motor(1, -250);
       motor(2, -200);
       motor(3, -200);
@@ -435,11 +429,7 @@ void loop() {
       manipulator(gamePad.LeftThumbX, gamePad.LeftThumbY);
     }
   }
-<<<<<<< HEAD
-=======
   // delay(500);
   // delay(5);
-
->>>>>>> aedd8bd17bf6fedd1247f9b6ef12383466e67d02
   // delay(500);
 }
